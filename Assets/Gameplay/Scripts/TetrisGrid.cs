@@ -34,7 +34,7 @@ public class TetrisGrid : MonoBehaviour
     {
         Gizmos.color = Color.grey;
 
-        var gridPosition = Vector3.zero; //transform.position;
+        var gridPosition = transform.position;
         var offset = new Vector3(-0.5f, -0.5f);
 
         // Draw vertical lines
@@ -55,9 +55,10 @@ public class TetrisGrid : MonoBehaviour
     }
     
     // Function to check if a position is within the grid boundaries
-    public static bool IsInsideGrid(Vector2Int position)
+    public static bool IsInsideGrid(Vector2Int index)
     {
-        return position.x >= 0 && position.x < gridWidth && position.y >= 0;
+        //var gridPosition = Instance.transform.position;
+        return index.x >= 0 && index.x < gridWidth && index.y >= 0;
     }
 
     // Function to Round a position to the nearest integer (snap to grid)

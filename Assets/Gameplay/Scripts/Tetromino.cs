@@ -54,7 +54,7 @@ public class Tetromino : MonoBehaviour
             // Move the tetromino downwards faster when the player holds the down arrow key
             if (Input.GetKey(KeyCode.DownArrow))
             {
-                if (Time.time - previousTime >= fallSpeed / 2f)
+                if (Time.time - previousTime >= fallSpeed / 4f)
                 {
                     Move(Vector2Int.down);
                     previousTime = Time.time;
@@ -116,16 +116,29 @@ public class Tetromino : MonoBehaviour
             yield return new WaitForSeconds(fallSpeed);
 
             // Move the tetromino down
-            Move(Vector2Int.down);
+            if (!Move(Vector2Int.down))
+            {
+                canMove = false;
+            }
         }
     }
 
-    private void SetOnGrid(Vector2Int gridPosition, Transform block)
+    private void SetBlockGrid(Vector2Int index, Transform block)
     {
         // above grid is valid
-        if ( gridPosition.y >= TetrisGrid.gridHeight ) return;
-
-        TetrisGrid.grid[gridPosition.x, gridPosition.y] = block;
+        if ( index.y >= TetrisGrid.gridHeight ) return;
+        TetrisGrid.grid[index.x, index.y] = block;
+    }
+    
+    private Vector3 GetGridPosition(Vector2Int index)
+    {
+        return TetrisGrid.Instance.transform.position + new Vector3(index.x, index.y, 0);
+    }
+    
+    private Vector2Int GetGridIndex(Vector3 position)
+    {
+        position -= TetrisGrid.Instance.transform.position;
+        return TetrisGrid.RoundVector(position);
     }
 
     // Function to update the tetromino's position in the grid after a successful move
@@ -134,8 +147,8 @@ public class Tetromino : MonoBehaviour
         // First, clear the current position of the tetromino from the grid
         foreach (Transform child in transform)
         {
-            Vector2Int gridPosition = TetrisGrid.RoundVector(child.position);
-            SetOnGrid(gridPosition, null);
+            Vector2Int index = GetGridIndex(child.position);
+            SetBlockGrid(index, null);
         }
 
         // Then, store the new position of the tetromino in the grid
@@ -147,7 +160,7 @@ public class Tetromino : MonoBehaviour
     {
         // Snap the tetromino to the specified grid position
         var previousPosition = transform.position;
-        transform.position = new Vector3(gridPosition.x, gridPosition.y, 0);
+        transform.position = GetGridPosition(gridPosition);
 
         // Check if the grid position is valid before placing the tetromino
         if (IsValidGridPosition())
@@ -168,19 +181,19 @@ public class Tetromino : MonoBehaviour
     {
         foreach (Transform child in transform)
         {
-            Vector2Int gridPosition = TetrisGrid.RoundVector(child.position);
-            if (!TetrisGrid.IsInsideGrid(gridPosition))
+            Vector2Int index = GetGridIndex(child.position);
+            if (!TetrisGrid.IsInsideGrid(index))
             {
                 return false;
             }
             
             // above grid is valid
-            if ( gridPosition.y >= TetrisGrid.gridHeight )
+            if ( index.y >= TetrisGrid.gridHeight )
             {
                 return true;
             }
 
-            var blockOnGrid = TetrisGrid.grid[gridPosition.x, gridPosition.y];
+            var blockOnGrid = TetrisGrid.grid[index.x, index.y];
             if (blockOnGrid != null && blockOnGrid.parent != transform)
             {
                 return false;
@@ -194,8 +207,8 @@ public class Tetromino : MonoBehaviour
     {
         foreach (Transform child in transform)
         {
-            Vector2Int gridPosition = TetrisGrid.RoundVector(child.position);
-            SetOnGrid(gridPosition, child);
+            Vector2Int index = GetGridIndex(child.position);
+            SetBlockGrid(index, child);
         }
     }
     
