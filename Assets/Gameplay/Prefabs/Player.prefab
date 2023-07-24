@@ -570,8 +570,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4873363952703958685}
+  - component: {fileID: 2505050745908093952}
   m_Layer: 6
-  m_Name: blocks
+  m_Name: grid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -597,6 +598,18 @@ Transform:
   - {fileID: 8099134868454940653}
   m_Father: {fileID: 1007411500125267347}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2505050745908093952
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6001657537879458180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a02eeac47f47dc48bbd335fa0d484fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &742894676043526358
 PrefabInstance:
   m_ObjectHideFlags: 0
