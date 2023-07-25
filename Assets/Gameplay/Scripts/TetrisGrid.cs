@@ -42,7 +42,7 @@ public class TetrisGrid : MonoBehaviour
             Reset();
         }
 
-        DrawGrid();
+        // DrawGrid();
     }
 
     private void OnGUI()
@@ -77,32 +77,8 @@ public class TetrisGrid : MonoBehaviour
         }
     }
 
-    private void DrawGrid()
-    {
-        var gridPosition = transform.position;
-        var offset = new Vector3(-0.5f, -0.5f);
-
-        // Draw vertical lines
-        for (int x = 0; x <= gridWidth; x++)
-        {
-            Vector3 start = gridPosition + new Vector3(x, 0, 0);
-            Vector3 end = gridPosition + new Vector3(x, gridHeight, 0);
-            Debug.DrawLine(start + offset, end + offset, Color.grey);
-        }
-
-        // Draw horizontal lines
-        for (int y = 0; y <= gridHeight; y++)
-        {
-            Vector3 start = gridPosition + new Vector3(0, y, 0);
-            Vector3 end = gridPosition + new Vector3(gridWidth, y, 0);
-            Debug.DrawLine(start + offset, end + offset, Color.grey);
-        }
-    }
-
-    // private void OnDrawGizmos()
+    // private void DrawGrid()
     // {
-    //     Gizmos.color = Color.grey;
-    //
     //     var gridPosition = transform.position;
     //     var offset = new Vector3(-0.5f, -0.5f);
     //
@@ -111,7 +87,7 @@ public class TetrisGrid : MonoBehaviour
     //     {
     //         Vector3 start = gridPosition + new Vector3(x, 0, 0);
     //         Vector3 end = gridPosition + new Vector3(x, gridHeight, 0);
-    //         Gizmos.DrawLine(start + offset, end + offset);
+    //         Debug.DrawLine(start + offset, end + offset, Color.grey);
     //     }
     //
     //     // Draw horizontal lines
@@ -119,21 +95,45 @@ public class TetrisGrid : MonoBehaviour
     //     {
     //         Vector3 start = gridPosition + new Vector3(0, y, 0);
     //         Vector3 end = gridPosition + new Vector3(gridWidth, y, 0);
-    //         Gizmos.DrawLine(start + offset, end + offset);
-    //     }
-    //
-    //     if (Application.isPlaying)
-    //     {
-    //         for (int i = 0; i < gridWidth; i++)
-    //         {
-    //             for (int j = 0; j < gridHeight; j++)
-    //             {
-    //                 Gizmos.color = GetGridElement(i, j) == null ? Color.clear : Color.red;
-    //                 Gizmos.DrawCube(GetPositionAtIndex(i, j), Vector3.one);
-    //             }
-    //         }
+    //         Debug.DrawLine(start + offset, end + offset, Color.grey);
     //     }
     // }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.grey;
+    
+        var gridPosition = transform.position;
+        var offset = new Vector3(-0.5f, -0.5f);
+    
+        // Draw vertical lines
+        for (int x = 0; x <= gridWidth; x++)
+        {
+            Vector3 start = gridPosition + new Vector3(x, 0, 0);
+            Vector3 end = gridPosition + new Vector3(x, gridHeight, 0);
+            Gizmos.DrawLine(start + offset, end + offset);
+        }
+    
+        // Draw horizontal lines
+        for (int y = 0; y <= gridHeight; y++)
+        {
+            Vector3 start = gridPosition + new Vector3(0, y, 0);
+            Vector3 end = gridPosition + new Vector3(gridWidth, y, 0);
+            Gizmos.DrawLine(start + offset, end + offset);
+        }
+    
+        if (Application.isPlaying)
+        {
+            for (int i = 0; i < gridWidth; i++)
+            {
+                for (int j = 0; j < gridHeight; j++)
+                {
+                    Gizmos.color = GetGridElement(i, j) == null ? Color.clear : Color.red;
+                    Gizmos.DrawCube(GetPositionAtIndex(i, j), Vector3.one);
+                }
+            }
+        }
+    }
     
     // Function to check if the top row of the grid is completely filled with tetrominoes
     private bool IsTopRowFilled()
