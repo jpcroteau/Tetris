@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Tetromino : MonoBehaviour
 {
-    private const float FallSpeed = 1f;
- 
     public enum Type
     {
         I,
@@ -19,15 +17,16 @@ public class Tetromino : MonoBehaviour
 
     [SerializeField] private Type type;
     
-    [SerializeField, ColorUsage(true, true)]
-    private Color color;
-    
+    [SerializeField, ColorUsage(true, true)] private Color color;
+
     private bool canMove = true;
     private float previousTime = 0f;
 
     private TetrisGrid grid;
     private Action<Tetromino> stopCallback = null;
-        
+    
+    private bool positionLocked = false;
+
     private void OnValidate()
     {
         SetColor(color);
@@ -42,31 +41,38 @@ public class Tetromino : MonoBehaviour
     {
         if (canMove)
         {
-            // Move the tetromino left
-            if (Input.GetKeyDown(KeyCode.LeftArrow))
+            if (Input.GetKeyDown(KeyCode.Space))
             {
-                Move(Vector2Int.left);
-            }
-            // Move the tetromino right
-            else if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                Move(Vector2Int.right);
-            }
-            // Rotate the tetromino clockwise
-            else if (Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                Rotate();
+                // fallDelay = 0.5f;
+                canMove = false;
+                positionLocked = true;
             }
 
-            // Move the tetromino downwards faster when the player holds the down arrow key
-            if (Input.GetKey(KeyCode.DownArrow))
-            {
-                if (Time.time - previousTime >= FallSpeed / 4f)
-                {
-                    Move(Vector2Int.down);
-                    previousTime = Time.time;
-                }
-            }
+            // // Move the tetromino left
+            // if (Input.GetKeyDown(KeyCode.LeftArrow))
+            // {
+            //     Move(Vector2Int.left);
+            // }
+            // // Move the tetromino right
+            // else if (Input.GetKeyDown(KeyCode.RightArrow))
+            // {
+            //     Move(Vector2Int.right);
+            // }
+            // // Rotate the tetromino clockwise
+            // else if (Input.GetKeyDown(KeyCode.UpArrow))
+            // {
+            //     Rotate();
+            // }
+            //
+            // // Move the tetromino downwards faster when the player holds the down arrow key
+            // if (Input.GetKey(KeyCode.DownArrow))
+            // {
+            //     if (Time.time - previousTime >= fallSpeed / 4f)
+            //     {
+            //         Move(Vector2Int.down);
+            //         previousTime = Time.time;
+            //     }
+            // }
         }
     }
 
@@ -75,11 +81,10 @@ public class Tetromino : MonoBehaviour
         this.grid = grid;
         this.stopCallback = stopCallback;
         
-        // Spawn the tetromino at a specific position on the grid
         SetTetrominoAt(grid.GetPositionAtIndex(x, y), transform.rotation);
 
-        // Start the coroutine for the falling behavior
-        StartCoroutine(FallRoutine());
+        //StartCoroutine(FallCoroutine());
+        StartCoroutine(MoveSidewaysCoroutine(0.2f));
     }
 
     #region Movement
@@ -98,16 +103,34 @@ public class Tetromino : MonoBehaviour
         return SetTetrominoAt(transform.position, wantedRotation);
     }
 
-    private IEnumerator FallRoutine()
+    private IEnumerator MoveSidewaysCoroutine(float delay)
     {
-        while (canMove)
+        var movement = Vector2Int.right;
+        while (!positionLocked)
         {
-            yield return new WaitForSeconds(FallSpeed);
+            yield return new WaitForSeconds(delay);
+            
+            if (positionLocked) break;
+            
+            if (!Move(movement))
+            {
+                movement = -movement;
+            }
+        }
 
-            // Move the tetromino down
+        StartCoroutine(FallCoroutine(0.01f));
+    }
+
+    private IEnumerator FallCoroutine(float delay)
+    {
+        var fall = true;
+        while (fall)
+        {
+            yield return new WaitForSeconds(delay);
+
             if (!Move(Vector2Int.down))
             {
-                canMove = false;
+                fall = false;
                 stopCallback?.Invoke(this);
             }
         }
@@ -131,7 +154,7 @@ public class Tetromino : MonoBehaviour
             // above grid is valid
             if ( index.y >= grid.GridHeight )
             {
-                return true;
+                continue;
             }
 
             var blockOnGrid = grid.GetGridElement(index.x, index.y);
@@ -140,6 +163,7 @@ public class Tetromino : MonoBehaviour
                 return false;
             }
         }
+        
         return true;
     }
     
