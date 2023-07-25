@@ -37,7 +37,7 @@ public class TetrisGrid : MonoBehaviour
 
     private void Update()
     {
-        if (IsGameOver && Input.GetKeyDown(KeyCode.Backspace))
+        if (IsGameOver && (Input.GetKeyDown(KeyCode.Backspace) || Input.GetMouseButtonDown(1)))
         {
             Reset();
         }
@@ -63,7 +63,7 @@ public class TetrisGrid : MonoBehaviour
         if (tetrominosPrefab.Length <= 0) return;
         
         var tetromino = Instantiate(tetrominosPrefab[Random.Range(0, tetrominosPrefab.Length - 1)], Vector3.zero, Quaternion.identity, transform);
-        tetromino.Spawn(this, OnTetrominoEnd, gridWidth/2, gridHeight);
+        tetromino.Spawn(this, OnTetrominoEnd, gridWidth/2, gridHeight-1);
     }
 
     private void OnTetrominoEnd(Tetromino tetromino)

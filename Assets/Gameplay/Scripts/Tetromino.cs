@@ -41,7 +41,7 @@ public class Tetromino : MonoBehaviour
     {
         if (canMove)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
             {
                 // fallDelay = 0.5f;
                 canMove = false;
