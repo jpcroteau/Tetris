@@ -1,31 +1,77 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class TetrisGrid : MonoBehaviour
 {
-    public static TetrisGrid Instance = null;
+    [Header("Grid")]
+    [SerializeField] private int gridWidth = 10;
+    public int GridWidth => gridWidth;
     
-    public static int gridWidth = 10;
-    public static int gridHeight = 10;
-    public static Transform[,] grid = new Transform[gridWidth, gridHeight];
+    [SerializeField] private int gridHeight = 10;
+    public int GridHeight => gridHeight;
+    
+    [Header("Tetromino")]
+    [SerializeField] private Tetromino[] tetrominosPrefab;
 
-    private void OnDestroy()
-    {
-        if (Instance == this)
-        {
-            Instance = null;
-        }
-    }
+    private Transform[,] grid;
+    
+    public Transform GetGridElement(int x, int y) => grid[x, y];
+    public void SetGridElement(int x, int y, Transform value) => grid[x, y] = value;
+
+    public Vector3 GetPositionAtIndex(int x, int y) => transform.position + new Vector3(x, y, 0);
+    public Vector2Int GetIndexAtPosition(Vector3 position) => RoundVector(position - transform.position);
+
+    public bool IsGameOver { get; private set; } = false;
 
     private void Awake()
     {
-        if (Instance == null)
+        grid = new Transform[gridWidth, gridHeight];
+    }
+
+    private void Start()
+    {
+        Reset();
+    }
+
+    private void Update()
+    {
+        if (IsGameOver && Input.GetKeyDown(KeyCode.Backspace))
         {
-            Instance = this;
+            Reset();
         }
-        else
+    }
+
+    private void OnGUI()
+    {
+        if (IsGameOver)
         {
-            Destroy(gameObject);
+            GUIStyle guiStyle = new GUIStyle(GUI.skin.label); 
+            guiStyle.fontSize = 40;
+            guiStyle.alignment = TextAnchor.MiddleCenter;
+                
+            GUI.color = Color.red;
+            GUI.Label(new Rect(0f, 0f, Screen.width, Screen.height), "GAME OVER", guiStyle);
+        }
+    }
+
+    private void SpawnRandomTetromino()
+    {
+        if (tetrominosPrefab.Length <= 0) return;
+        
+        var tetromino = Instantiate(tetrominosPrefab[Random.Range(0, tetrominosPrefab.Length - 1)], Vector3.zero, Quaternion.identity, transform);
+        tetromino.Spawn(this, OnTetrominoEnd, gridWidth/2, gridHeight);
+    }
+
+    private void OnTetrominoEnd(Tetromino tetromino)
+    {
+        ClearCompletedRows();
+        
+        IsGameOver = IsTopRowFilled();
+        if (!IsGameOver)
+        {
+            SpawnRandomTetromino();
         }
     }
 
@@ -52,28 +98,53 @@ public class TetrisGrid : MonoBehaviour
             Vector3 end = gridPosition + new Vector3(gridWidth, y, 0);
             Gizmos.DrawLine(start + offset, end + offset);
         }
+
+        if (Application.isPlaying)
+        {
+            for (int i = 0; i < gridWidth; i++)
+            {
+                for (int j = 0; j < gridHeight; j++)
+                {
+                    Gizmos.color = GetGridElement(i, j) == null ? Color.clear : Color.red;
+                    Gizmos.DrawCube(GetPositionAtIndex(i, j), Vector3.one);
+                }
+            }
+        }
+    }
+    
+    // Function to check if the top row of the grid is completely filled with tetrominoes
+    private bool IsTopRowFilled()
+    {
+        for (int x = 0; x < gridWidth; x++)
+        {
+            if (GetGridElement(x,  gridHeight - 1) != null)
+            {
+                return true;
+            }
+        }
+        return false;
     }
     
     // Function to check if a position is within the grid boundaries
-    public static bool IsInsideGrid(Vector2Int index)
+    public bool IsInsideGrid(Vector2Int index)
     {
         //var gridPosition = Instance.transform.position;
         return index.x >= 0 && index.x < gridWidth && index.y >= 0;
     }
 
     // Function to Round a position to the nearest integer (snap to grid)
-    public static Vector2Int RoundVector(Vector2 position)
+    public Vector2Int RoundVector(Vector2 position)
     {
         return new Vector2Int(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y));
     }
 
     // Function to Clear a row and shift all rows above it downwards
-    public static void ClearRow(int row)
+    public void ClearRow(int row)
     {
         for (int x = 0; x < gridWidth; x++)
         {
-            Destroy(grid[x, row].gameObject);
-            grid[x, row] = null;
+            Destroy(GetGridElement(x, row).gameObject);
+            SetGridElement(x, row, null);
         }
 
         // Move all rows above 'row' down by one step
@@ -92,11 +163,11 @@ public class TetrisGrid : MonoBehaviour
     }
 
     // Function to check if a row is full
-    public static bool IsRowFull(int row)
+    public bool IsRowFull(int row)
     {
         for (int x = 0; x < gridWidth; x++)
         {
-            if (grid[x, row] == null)
+            if (GetGridElement(x,  row) == null)
             {
                 return false;
             }
@@ -106,14 +177,26 @@ public class TetrisGrid : MonoBehaviour
     }
 
     // Function to remove all completed rows
-    public static void ClearCompletedRows()
+    public void ClearCompletedRows()
     {
-        for (int y = 0; y < gridHeight; y++)
+        for (int y = gridHeight - 1; y >= 0; y--)
         {
             if (IsRowFull(y))
             {
                 ClearRow(y);
             }
         }
+    }
+
+    private void Reset()
+    {
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            Destroy(transform.GetChild(i).gameObject);
+        }
+
+        IsGameOver = false;
+        
+        SpawnRandomTetromino();
     }
 }
